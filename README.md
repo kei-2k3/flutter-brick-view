@@ -1,39 +1,46 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Flutter Brick View
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+Flutter Brick View is a light weight package that allows developer to display network images in a brick view. It provides responsive layouts with customizable spacing, max_height, and smooth scrolling.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+![License](https://img.shields.io/badge/license-MIT-green)
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# Installation
 
-## Features
+Add this to your `pubspec.yaml`
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  flutter_brick_view: ^1.0.0
 ```
 
-## Additional information
+# Usage
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```dart
+import 'package:flutter_brick_view/flutter_brick_view.dart';
+
+BrickView(
+  imageUrls: imageUrls, // image url list
+  maxHeight: 200,
+  horizontalGap: 10,
+  verticalGap: 10,
+  padding: const EdgeInsets.symmetric(horizontal: 10),
+  borderRadius: 12,
+  loadingWidget: const Center(
+    child: CircularProgressIndicator(color: Colors.orangeAccent),
+  ),
+  errorWidget: Container(
+    color: Colors.grey[700],
+    child: const Icon(Icons.broken_image, color: Colors.red),
+  ),
+  onImageTap: (index) {
+    debugPrint('Tapped image at index: $index');
+  },
+),
+
+```
+
+### Explanation
+
+- **Installation**: Clearly instructs users how to add `flutter_brick_view` to their Flutter project by specifying the version (`^1.0.0`).
+
+- **Version**: Provides a dedicated section where users can easily reference the recommended version to use in their `pubspec.yaml`.

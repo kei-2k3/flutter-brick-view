@@ -10,7 +10,7 @@ Add this to your `pubspec.yaml`
 
 ```yaml
 dependencies:
-  flutter_brick_view: ^1.0.0
+  flutter_brick_view: ^1.0.1
 ```
 
 # Usage
@@ -39,8 +39,6 @@ BrickView(
 
 ```
 
-### Explanation
+## Screenshot
 
-- **Installation**: Clearly instructs users how to add `flutter_brick_view` to their Flutter project by specifying the version (`^1.0.0`).
-
-- **Version**: Provides a dedicated section where users can easily reference the recommended version to use in their `pubspec.yaml`.
+![BrickView Screenshot](example/example_view.png)

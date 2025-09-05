@@ -1,6 +1,6 @@
 name: flutter_brick_view
 description: Flutter Brick View is a light weight package that allows developer to display network images in a brick view. It provides responsive layouts with customizable spacing, max_height, and smooth scrolling.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/kei-2k3/flutter-brick-view
 
 license: MIT

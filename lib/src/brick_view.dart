@@ -1,6 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// Class representing a single item in a row of images.
 /// Contains the index of the image and its calculated width in the row.
@@ -156,21 +157,18 @@ class BrickView<T> extends StatelessWidget {
         width: width,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Image.network(
-            imageUrl,
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return loadingWidget ??
-                  const Center(child: CircularProgressIndicator());
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return errorWidget ??
-                  Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  );
-            },
+            placeholder: (context, url) =>
+                loadingWidget ??
+                const Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) =>
+                errorWidget ??
+                Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                ),
           ),
         ),
       ),

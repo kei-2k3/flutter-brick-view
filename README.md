@@ -10,7 +10,7 @@ Add this to your `pubspec.yaml`
 
 ```yaml
 dependencies:
-  flutter_brick_view: ^1.0.1
+  flutter_brick_view: ^1.0.2
 ```
 
 # Usage

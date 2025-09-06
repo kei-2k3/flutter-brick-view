@@ -9,6 +9,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  cached_network_image: ^3.4.1
   flutter:
     sdk: flutter
   mocktail_image_network: ^1.2.0

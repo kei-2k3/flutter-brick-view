@@ -1,6 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// Class representing a single item in a row of images.
 /// Contains the index of the image and its calculated width in the row.
@@ -156,21 +157,18 @@ class BrickView<T> extends StatelessWidget {
         width: width,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Image.network(
-            imageUrl,
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return loadingWidget ??
-                  const Center(child: CircularProgressIndicator());
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return errorWidget ??
-                  Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  );
-            },
+            placeholder: (context, url) =>
+                loadingWidget ??
+                const Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) =>
+                errorWidget ??
+                Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                ),
           ),
         ),
       ),
@@ -224,19 +222,62 @@ class BrickView<T> extends StatelessWidget {
   }
 
   /// Loads the size of a single image.
-  Future<Size> _loadImageSize(String url) {
+  Future<Size> _loadImageSize(String url) async {
     final completer = Completer<Size>();
-    final image = Image.network(url);
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(
-          ImageStreamListener((info, _) {
+    ImageStreamListener? listener;
+
+    try {
+      final image = Image.network(url);
+      final imageStream = image.image.resolve(const ImageConfiguration());
+
+      listener = ImageStreamListener(
+        (ImageInfo info, bool synchronousCall) {
+          // Check if completer is already completed before completing
+          if (!completer.isCompleted) {
             completer.complete(
               Size(info.image.width.toDouble(), info.image.height.toDouble()),
             );
-          }),
-        );
-    return completer.future;
+          }
+        },
+        onError: (exception, stackTrace) {
+          // Check if completer is already completed before completing with error
+          if (!completer.isCompleted) {
+            completer.completeError(exception, stackTrace);
+          }
+        },
+      );
+
+      imageStream.addListener(listener);
+
+      // Set up a timeout to prevent hanging indefinitely
+      final result = await completer.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException(
+            'Image loading timed out',
+            const Duration(seconds: 10),
+          );
+        },
+      );
+
+      return result;
+    } catch (e) {
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+      rethrow;
+    } finally {
+      // Clean up listener if it was created
+      if (listener != null) {
+        try {
+          final image = Image.network(url);
+          final imageStream = image.image.resolve(const ImageConfiguration());
+          imageStream.removeListener(listener);
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
+    }
   }
 
   /// Calculates how to group images into rows based on their aspect ratios.

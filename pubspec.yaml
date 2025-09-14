@@ -1,6 +1,6 @@
 name: flutter_brick_view
-description: Flutter Brick View is a light weight package.
-version: 1.0.2
+description: A lightweight Flutter package for brick-style image grids with customizable gaps, padding, loading animations, and shimmer effects.
+version: 1.0.3
 repository: https://github.com/kei-2k3/flutter-brick-view
 
 license: MIT

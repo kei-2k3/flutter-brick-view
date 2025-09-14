@@ -10,7 +10,7 @@ Add this to your `pubspec.yaml`
 
 ```yaml
 dependencies:
-  flutter_brick_view: ^1.0.2
+  flutter_brick_view: ^1.0.3
 ```
 
 # Usage
@@ -19,7 +19,8 @@ dependencies:
 import 'package:flutter_brick_view/flutter_brick_view.dart';
 
 BrickView(
-  imageUrls: imageUrls, // image url list
+  data: images, //ImageModel
+  imageProvider: (image) => NetworkImage(image.url),
   maxHeight: 200,
   horizontalGap: 10,
   verticalGap: 10,
@@ -35,6 +36,8 @@ BrickView(
   onImageTap: (index) {
     debugPrint('Tapped image at index: $index');
   },
+  enableShimmerEffect: true,
+  imageLoadingDuration: const Duration(milliseconds: 300),
 ),
 
 ```

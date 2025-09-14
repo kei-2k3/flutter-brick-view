@@ -40,7 +40,8 @@ class MyApp extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: BrickView(
-              imageUrls: imageUrls,
+              data: images,
+              imageProvider: (image) => NetworkImage(image.url),
               maxHeight: 200,
               horizontalGap: 10,
               verticalGap: 10,
@@ -56,6 +57,8 @@ class MyApp extends StatelessWidget {
               onImageTap: (index) {
                 debugPrint('Tapped image at index: $index');
               },
+              enableShimmerEffect: true,
+              imageLoadingDuration: const Duration(milliseconds: 300),
             ),
           ),
         ),
@@ -63,3 +66,22 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class SampleImage {
+  final String id;
+  final String url;
+  SampleImage(this.id, this.url);
+}
+
+final images = [
+  SampleImage('1', 'https://picsum.photos/seed/picsum/800/600'),
+  SampleImage('2', 'https://picsum.photos/seed/picsum/600/900'),
+  SampleImage('3', 'https://picsum.photos/seed/picsum/1200/600'),
+  SampleImage('4', 'https://picsum.photos/seed/picsum/500/500'),
+  SampleImage('5', 'https://picsum.photos/seed/picsum/900/1200'),
+  SampleImage('6', 'https://picsum.photos/seed/picsum/1600/900'),
+  SampleImage('7', 'https://picsum.photos/seed/picsum/600/900'),
+  SampleImage('8', 'https://picsum.photos/seed/picsum/1200/600'),
+  SampleImage('9', 'https://picsum.photos/seed/picsum/500/500'),
+  SampleImage('10', 'https://picsum.photos/seed/picsum/900/1200'),
+];

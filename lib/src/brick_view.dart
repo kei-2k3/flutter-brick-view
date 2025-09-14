@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_brick_view/src/widget/enhanced_image.dart';
 
 /// Class representing a single item in a row of images.
 /// Contains the index of the image and its calculated width in the row.
@@ -16,9 +15,10 @@ class RowItem {
 /// Displays images in layout similar to Google Images
 /// Supports custom gaps, padding, max height, and tap callbacks
 class BrickView<T> extends StatelessWidget {
-  const BrickView({
+  BrickView({
     super.key,
-    required this.imageUrls,
+    required this.data,
+    required this.imageProvider,
     this.horizontalGap = 4.0,
     this.verticalGap = 4.0,
     this.padding = const EdgeInsets.all(10.0),
@@ -28,10 +28,15 @@ class BrickView<T> extends StatelessWidget {
     this.loadingWidget,
     this.errorWidget,
     this.physics,
-  });
+    this.imageLoadingDuration = const Duration(milliseconds: 300),
+    this.enableShimmerEffect = true,
+  }) : assert(data.isNotEmpty, 'Data list cannot be empty');
 
-  /// List of image urls to display.
-  final List<String>? imageUrls;
+  /// List of image data objects.
+  final List<T> data;
+
+  /// Function that extracts an ImageProvider from image.
+  final ImageProvider Function(T image) imageProvider;
 
   /// Horizontal space between images in a same row.
   final double horizontalGap;
@@ -60,6 +65,12 @@ class BrickView<T> extends StatelessWidget {
   /// Scroll physics for the outer ListView
   final ScrollPhysics? physics;
 
+  /// Duration for fade-in animation when image loads
+  final Duration imageLoadingDuration;
+
+  /// Whether to show shimmer effect during loading
+  final bool enableShimmerEffect;
+
   @override
   Widget build(BuildContext context) {
     return _buildImageBrickView();
@@ -67,14 +78,14 @@ class BrickView<T> extends StatelessWidget {
 
   /// Main builder for the brick-style image grid.
   Widget _buildImageBrickView() {
-    if (imageUrls == null || imageUrls!.isEmpty) {
+    if (data.isEmpty) {
       // Show empty state if no images are provided
       return _buildEmptyState('No image to display');
     }
 
     // Load image sizes asynchronously
     return FutureBuilder(
-      future: _loadAllImageSizes(imageUrls!),
+      future: _loadAllImageSizes(data),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState();
@@ -90,10 +101,10 @@ class BrickView<T> extends StatelessWidget {
 
         final sizes = snapshot.data!;
         return _buildBrickLayout(
-          itemCount: imageUrls!.length,
+          itemCount: data.length,
           sizes: sizes,
           itemBuilder: (context, index, width) =>
-              _buildImageItem(imageUrls![index], index, width),
+              _buildImageItem(data[index], index, width),
         );
       },
     );
@@ -140,7 +151,7 @@ class BrickView<T> extends StatelessWidget {
     return Row(
       children: [
         for (int i = 0; i < row.length; i++) ...[
-          _buildImageItem(imageUrls![row[i].index], row[i].index, row[i].width),
+          itemBuilder(context, row[i].index, row[i].width),
           if (i < row.length - 1) SizedBox(width: horizontalGap),
         ],
       ],
@@ -148,7 +159,8 @@ class BrickView<T> extends StatelessWidget {
   }
 
   /// Builds a single image widget with tap, loading, and error handling.
-  Widget _buildImageItem(String imageUrl, int index, double width) {
+  Widget _buildImageItem(T image, int index, double width) {
+    final provider = imageProvider(image);
     return InkWell(
       onTap: onImageTap != null ? () => onImageTap!(index) : null,
       borderRadius: BorderRadius.circular(borderRadius),
@@ -157,18 +169,13 @@ class BrickView<T> extends StatelessWidget {
         width: width,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
-          child: CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            placeholder: (context, url) =>
-                loadingWidget ??
-                const Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) =>
-                errorWidget ??
-                Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.broken_image, color: Colors.grey),
-                ),
+          child: EnhancedImage(
+            imageProvider: provider,
+            loadingWidget: loadingWidget,
+            errorWidget: errorWidget,
+            borderRadius: borderRadius,
+            imageLoadingDuration: imageLoadingDuration,
+            enableShimmerEffect: enableShimmerEffect,
           ),
         ),
       ),
@@ -212,9 +219,9 @@ class BrickView<T> extends StatelessWidget {
   }
 
   /// Loads the sizes of all images asynchronously.
-  Future<List<Size>> _loadAllImageSizes(List<String> urls) async {
+  Future<List<Size>> _loadAllImageSizes(List<T> images) async {
     try {
-      final futures = urls.map((url) => _loadImageSize(url));
+      final futures = images.map((image) => _loadImageSize(image));
       return Future.wait(futures);
     } catch (e) {
       throw Exception('Failed to load iamge sizes: $e');
@@ -222,13 +229,13 @@ class BrickView<T> extends StatelessWidget {
   }
 
   /// Loads the size of a single image.
-  Future<Size> _loadImageSize(String url) async {
+  Future<Size> _loadImageSize(T image) async {
+    final provider = imageProvider(image);
     final completer = Completer<Size>();
     ImageStreamListener? listener;
 
     try {
-      final image = Image.network(url);
-      final imageStream = image.image.resolve(const ImageConfiguration());
+      final imageStream = provider.resolve(const ImageConfiguration());
 
       listener = ImageStreamListener(
         (ImageInfo info, bool synchronousCall) {
@@ -270,9 +277,8 @@ class BrickView<T> extends StatelessWidget {
       // Clean up listener if it was created
       if (listener != null) {
         try {
-          final image = Image.network(url);
-          final imageStream = image.image.resolve(const ImageConfiguration());
-          imageStream.removeListener(listener);
+          final stream = provider.resolve(const ImageConfiguration());
+          stream.removeListener(listener);
         } catch (e) {
           // Ignore cleanup errors
         }
